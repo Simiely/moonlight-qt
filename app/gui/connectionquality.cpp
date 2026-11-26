@@ -78,8 +78,10 @@ void ConnectionQuality::setActive(bool active)
         if (m_Active != active) {
             m_Active = active;
             if (!active) {
-                // 会话结束：收起横条，并清零旧指标，避免下次串流首秒显示上次的值
-                m_BarEnabled = false;
+                // 会话结束：清零旧指标，避免下次串流首秒显示上次的值。
+                // barEnabled 复位为 true（fail-safe）：下次串流开始由 QML 按设置覆盖；
+                // 即使那个信号没触发，横条也会按默认开启显示，而不是永远不出现。
+                m_BarEnabled = true;
                 m_Width = 0;
                 m_Height = 0;
                 m_Fps = 0.0;
