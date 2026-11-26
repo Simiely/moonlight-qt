@@ -218,7 +218,7 @@ Window {
             text: qsTr("再次按 Ctrl+Alt+Shift+H 关闭")
             color: "#90a4ae"
             font.pixelSize: 11
-            italic: true
+            font.italic: true
         }
     }
 }
