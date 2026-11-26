@@ -1824,8 +1824,46 @@ Flickable {
                     ToolTip.delay: 1000
                     ToolTip.timeout: 5000
                     ToolTip.visible: hovered
-                    ToolTip.text: qsTr("串流时显示一个可拖动的小窗，包含延迟、丢包、码率和帧率。") + "\n\n" +
-                                  qsTr("若悬浮窗被全屏游戏遮挡，请在主机端使用无边框窗口模式。")
+                    ToolTip.text: qsTr("串流时在画面顶部显示一条半透明横条，包含延迟、丢包、码率和帧率。") + "\n\n" +
+                                  qsTr("串流中可用 Ctrl+Alt+Shift+B 临时显隐，[ 和 ] 调节大小。")
+                }
+
+                // 快捷键说明面板（本 fork 新增）
+                Rectangle {
+                    width: parent.width
+                    height: shortcutTips.height + 24
+                    color: "#22ffffff"
+                    radius: 6
+                    border.color: "#5580cbc4"
+                    border.width: 1
+
+                    Column {
+                        id: shortcutTips
+                        x: 12
+                        y: 12
+                        width: parent.width - 24
+                        spacing: 4
+
+                        Label {
+                            text: qsTr("串流中的快捷键（Ctrl+Alt+Shift + 按键）")
+                            font.pointSize: 11
+                            font.bold: true
+                            color: "#80cbc4"
+                            wrapMode: Text.WordWrap
+                            width: parent.width
+                        }
+                        Label {
+                            text: qsTr("H  显示/隐藏本面板     B  显示/隐藏连接质量横条") + "\n" +
+                                  qsTr("[  缩小横条     ]  放大横条     S  性能统计") + "\n" +
+                                  qsTr("M  鼠标模式     Z  释放/捕获鼠标     X  全屏") + "\n" +
+                                  qsTr("D  最小化     V  粘贴到主机     L  指针区域锁定") + "\n" +
+                                  qsTr("Q  断开会话     E  断开并退出     K  系统按键捕获     C  鼠标指针")
+                            font.pointSize: 10
+                            wrapMode: Text.WordWrap
+                            lineHeight: 1.4
+                            width: parent.width
+                        }
+                    }
                 }
             }
         }
