@@ -137,6 +137,18 @@ void ConnectionQuality::setScale(double scale)
     }, Qt::QueuedConnection);
 }
 
+void ConnectionQuality::adjustOpacity(int direction)
+{
+    QMetaObject::invokeMethod(this, [this, direction]() {
+        // 0.15（几乎透明）~ 1.0（纯黑不透明）
+        double next = qBound(0.15, m_BarOpacity + (direction > 0 ? 0.1 : -0.1), 1.0);
+        if (!qFuzzyCompare(m_BarOpacity, next)) {
+            m_BarOpacity = next;
+            emit barOpacityChanged();
+        }
+    }, Qt::QueuedConnection);
+}
+
 void ConnectionQuality::setStreamGeometry(int x, int y, int width, int height)
 {
     // 可能从串流线程调用，切回主线程更新属性
