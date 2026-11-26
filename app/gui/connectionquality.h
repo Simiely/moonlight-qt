@@ -49,6 +49,10 @@ class ConnectionQuality : public QObject
     // 串流中临时显隐（B 键切换，不改持久设置；会话结束时复位）
     Q_PROPERTY(bool barEnabled MEMBER m_BarEnabled NOTIFY barEnabledChanged)
 
+    // 横条背景透明度（0.15~1.0，- / = 键调节）
+    Q_PROPERTY(double barOpacity MEMBER m_BarOpacity NOTIFY barOpacityChanged)
+
+
 public:
     static ConnectionQuality* get(QObject* parent = nullptr);
 
@@ -85,6 +89,8 @@ public:
     Q_INVOKABLE void toggleBar();
     /// 明确设置横条显隐（QML 在串流开始时按设置初始化用）
     Q_INVOKABLE void setBarVisible(bool visible);
+    /// 调节横条背景透明度（direction > 0 更不透明）
+    Q_INVOKABLE void adjustOpacity(int direction);
 
 signals:
     void statsChanged();
@@ -92,6 +98,7 @@ signals:
     void streamGeometryChanged();
     void uiScaleChanged();
     void barEnabledChanged();
+    void barOpacityChanged();
 
 private slots:
     // 运行在主线程
@@ -134,4 +141,6 @@ private:
     double m_UiScale = 1.0;
     // 默认可见（fail-safe）；串流开始时 QML 会按持久设置覆盖，之后可用 B 键随时呼出/收起
     bool m_BarEnabled = true;
+    // 默认半透明黑底
+    double m_BarOpacity = 0.55;
 };
