@@ -1810,6 +1810,23 @@ Flickable {
                                   qsTr("You can toggle it at any time while streaming using Ctrl+Alt+Shift+S or Select+L1+R1+X.") + "\n\n" +
                                   qsTr("The performance overlay is not supported on Steam Link or Raspberry Pi.")
                 }
+
+                CheckBox {
+                    id: showConnectionQualityWindow
+                    width: parent.width
+                    text: qsTr("串流时显示连接质量悬浮窗")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.showConnectionQualityWindow
+                    onCheckedChanged: {
+                        StreamingPreferences.showConnectionQualityWindow = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("串流时显示一个可拖动的小窗，包含延迟、丢包、码率和帧率。") + "\n\n" +
+                                  qsTr("若悬浮窗被全屏游戏遮挡，请在主机端使用无边框窗口模式。")
+                }
             }
         }
     }
