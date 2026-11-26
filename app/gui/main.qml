@@ -35,6 +35,11 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        // 以 parent=null 创建悬浮窗，避免继承主窗口的 transientParent。
+        // 保存到属性里，防止 JS 引擎把无父对象当垃圾回收。
+        connectionQualityWindow = connectionQualityWindowComponent.createObject(null)
+        shortcutHelpWindow = shortcutHelpWindowComponent.createObject(null)
+
         // Show the window according to the user's preferences
         if (SystemProperties.hasDesktopEnvironment) {
             if (StreamingPreferences.uiDisplayMode == StreamingPreferences.UI_MAXIMIZED) {
@@ -512,14 +517,20 @@ ApplicationWindow {
         }
     }
 
-    // 独立连接质量悬浮窗：串流中且设置开启时显示，可拖动、始终置顶
-    ConnectionQualityWindow {
-        id: connectionQualityWindow
+    // 两个悬浮窗在运行时以 parent=null 创建。
+    // 若直接声明为 ApplicationWindow 的子项，窗口会带上 transientParent，
+    // 串流时主窗口隐藏（visible=false）会把它们一起隐藏，导致功能完全不可见。
+    property var connectionQualityWindow: null
+    property var shortcutHelpWindow: null
+
+    Component {
+        id: connectionQualityWindowComponent
+        ConnectionQualityWindow {}
     }
 
-    // 快捷键帮助悬浮窗：串流中按 Ctrl+Alt+Shift+H 唤出
-    ShortcutHelpWindow {
-        id: shortcutHelpWindow
+    Component {
+        id: shortcutHelpWindowComponent
+        ShortcutHelpWindow {}
     }
 
     NavigableDialog {
