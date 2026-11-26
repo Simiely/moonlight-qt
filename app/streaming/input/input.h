@@ -172,6 +172,8 @@ private:
         KeyComboToggleQualityBar,
         KeyComboDecreaseOverlayScale,
         KeyComboIncreaseOverlayScale,
+        KeyComboDecreaseBarOpacity,
+        KeyComboIncreaseBarOpacity,
         KeyComboMax
     };
 
