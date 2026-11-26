@@ -512,6 +512,16 @@ ApplicationWindow {
         }
     }
 
+    // 独立连接质量悬浮窗：串流中且设置开启时显示，可拖动、始终置顶
+    ConnectionQualityWindow {
+        id: connectionQualityWindow
+    }
+
+    // 快捷键帮助悬浮窗：串流中按 Ctrl+Alt+Shift+H 唤出
+    ShortcutHelpWindow {
+        id: shortcutHelpWindow
+    }
+
     NavigableDialog {
         id: addPcDialog
         property string label: qsTr("Enter the IP address of your host PC:")
