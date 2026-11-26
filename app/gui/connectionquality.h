@@ -132,6 +132,6 @@ private:
     int m_StreamHeight = 0;
 
     double m_UiScale = 1.0;
-    // 初始不可见；串流开始时由 QML 按持久设置初始化，之后可用 B 键随时呼出/收起
-    bool m_BarEnabled = false;
+    // 默认可见（fail-safe）；串流开始时 QML 会按持久设置覆盖，之后可用 B 键随时呼出/收起
+    bool m_BarEnabled = true;
 };
