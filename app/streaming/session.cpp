@@ -3,6 +3,7 @@
 #include "streaming/streamutils.h"
 #include "backend/richpresencemanager.h"
 #include "gui/connectionquality.h"
+#include "gui/shortcutoverlay.h"
 
 #include <Limelight.h>
 #include "SDL_compat.h"
@@ -1272,6 +1273,8 @@ private:
     {
         // 会话结束：隐藏连接质量悬浮窗
         ConnectionQuality::get()->setActive(false);
+        // 同时复位快捷键帮助窗状态，否则下次串流开始会因 visible 仍为 true 而自动弹出
+        ShortcutOverlay::get()->setVisible(false);
 
         // Only quit the running app if our session terminated gracefully
         bool shouldQuit =
