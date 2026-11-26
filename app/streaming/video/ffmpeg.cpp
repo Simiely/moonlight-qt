@@ -2,6 +2,7 @@
 #include "ffmpeg.h"
 #include "utils.h"
 #include "streaming/session.h"
+#include "gui/connectionquality.h"
 
 #include <h264_stream.h>
 
@@ -797,82 +798,47 @@ void FFmpegVideoDecoder::addVideoStats(VIDEO_STATS& src, VIDEO_STATS& dst)
     dst.renderedFps     = (double)dst.renderedFrames / timeDiffSecs;
 }
 
+QString FFmpegVideoDecoder::getCodecName()
+{
+    switch (m_VideoFormat)
+    {
+    case VIDEO_FORMAT_H264:
+        return QStringLiteral("H.264");
+    case VIDEO_FORMAT_H264_HIGH8_444:
+        return QStringLiteral("H.264 4:4:4");
+    case VIDEO_FORMAT_H265:
+        return QStringLiteral("HEVC");
+    case VIDEO_FORMAT_H265_REXT8_444:
+        return QStringLiteral("HEVC 4:4:4");
+    case VIDEO_FORMAT_H265_MAIN10:
+        return LiGetCurrentHostDisplayHdrMode() ? QStringLiteral("HEVC 10-bit HDR")
+                                                : QStringLiteral("HEVC 10-bit SDR");
+    case VIDEO_FORMAT_H265_REXT10_444:
+        return LiGetCurrentHostDisplayHdrMode() ? QStringLiteral("HEVC 10-bit HDR 4:4:4")
+                                                : QStringLiteral("HEVC 10-bit SDR 4:4:4");
+    case VIDEO_FORMAT_AV1_MAIN8:
+        return QStringLiteral("AV1");
+    case VIDEO_FORMAT_AV1_HIGH8_444:
+        return QStringLiteral("AV1 4:4:4");
+    case VIDEO_FORMAT_AV1_MAIN10:
+        return LiGetCurrentHostDisplayHdrMode() ? QStringLiteral("AV1 10-bit HDR")
+                                                : QStringLiteral("AV1 10-bit SDR");
+    case VIDEO_FORMAT_AV1_HIGH10_444:
+        return LiGetCurrentHostDisplayHdrMode() ? QStringLiteral("AV1 10-bit HDR 4:4:4")
+                                                : QStringLiteral("AV1 10-bit SDR 4:4:4");
+    default:
+        return QStringLiteral("UNKNOWN");
+    }
+}
+
 void FFmpegVideoDecoder::stringifyVideoStats(VIDEO_STATS& stats, char* output, int length)
 {
     int offset = 0;
-    const char* codecString;
+    QByteArray codecString = getCodecName().toUtf8();
     int ret;
 
     // Start with an empty string
     output[offset] = 0;
-
-    switch (m_VideoFormat)
-    {
-    case VIDEO_FORMAT_H264:
-        codecString = "H.264";
-        break;
-
-    case VIDEO_FORMAT_H264_HIGH8_444:
-        codecString = "H.264 4:4:4";
-        break;
-
-    case VIDEO_FORMAT_H265:
-        codecString = "HEVC";
-        break;
-
-    case VIDEO_FORMAT_H265_REXT8_444:
-        codecString = "HEVC 4:4:4";
-        break;
-
-    case VIDEO_FORMAT_H265_MAIN10:
-        if (LiGetCurrentHostDisplayHdrMode()) {
-            codecString = "HEVC 10-bit HDR";
-        }
-        else {
-            codecString = "HEVC 10-bit SDR";
-        }
-        break;
-
-    case VIDEO_FORMAT_H265_REXT10_444:
-        if (LiGetCurrentHostDisplayHdrMode()) {
-            codecString = "HEVC 10-bit HDR 4:4:4";
-        }
-        else {
-            codecString = "HEVC 10-bit SDR 4:4:4";
-        }
-        break;
-
-    case VIDEO_FORMAT_AV1_MAIN8:
-        codecString = "AV1";
-        break;
-
-    case VIDEO_FORMAT_AV1_HIGH8_444:
-        codecString = "AV1 4:4:4";
-        break;
-
-    case VIDEO_FORMAT_AV1_MAIN10:
-        if (LiGetCurrentHostDisplayHdrMode()) {
-            codecString = "AV1 10-bit HDR";
-        }
-        else {
-            codecString = "AV1 10-bit SDR";
-        }
-        break;
-
-    case VIDEO_FORMAT_AV1_HIGH10_444:
-        if (LiGetCurrentHostDisplayHdrMode()) {
-            codecString = "AV1 10-bit HDR 4:4:4";
-        }
-        else {
-            codecString = "AV1 10-bit SDR 4:4:4";
-        }
-        break;
-
-    default:
-        SDL_assert(false);
-        codecString = "UNKNOWN";
-        break;
-    }
 
     if (stats.receivedFps > 0) {
         if (m_VideoDecoderCtx != nullptr) {
@@ -891,7 +857,7 @@ void FFmpegVideoDecoder::stringifyVideoStats(VIDEO_STATS& stats, char* output, i
                            m_VideoDecoderCtx->width,
                            m_VideoDecoderCtx->height,
                            stats.totalFps,
-                           codecString
+                           codecString.constData()
 #ifdef DISPLAY_BITRATE
                            ,
                            avgVideoMbps,
@@ -2137,15 +2103,51 @@ int FFmpegVideoDecoder::submitDecodeUnit(PDECODE_UNIT du)
     // Flip stats windows roughly every second
     if (LiGetMicroseconds() > m_ActiveWndVideoStats.measurementStartUs + 1000000) {
         // Update overlay stats if it's enabled
-        if (Session::get()->getOverlayManager().isOverlayEnabled(Overlay::OverlayDebug)) {
-            VIDEO_STATS lastTwoWndStats = {};
-            addVideoStats(m_LastWndVideoStats, lastTwoWndStats);
-            addVideoStats(m_ActiveWndVideoStats, lastTwoWndStats);
+        VIDEO_STATS lastTwoWndStats = {};
+        addVideoStats(m_LastWndVideoStats, lastTwoWndStats);
+        addVideoStats(m_ActiveWndVideoStats, lastTwoWndStats);
 
+        if (Session::get()->getOverlayManager().isOverlayEnabled(Overlay::OverlayDebug)) {
             stringifyVideoStats(lastTwoWndStats,
                                 Session::get()->getOverlayManager().getOverlayText(Overlay::OverlayDebug),
                                 Session::get()->getOverlayManager().getOverlayMaxTextLength());
             Session::get()->getOverlayManager().setOverlayTextUpdated(Overlay::OverlayDebug);
+        }
+
+        // 推送连接质量数据到独立悬浮窗模型（解码线程 -> 主线程由模型内部完成）
+        if (m_VideoDecoderCtx != nullptr) {
+            int rttMs = static_cast<int>(lastTwoWndStats.lastRtt);
+            int rttVarianceMs = static_cast<int>(lastTwoWndStats.lastRttVariance);
+            double networkLossPercent = lastTwoWndStats.totalFrames > 0
+                    ? (double)lastTwoWndStats.networkDroppedFrames / lastTwoWndStats.totalFrames * 100
+                    : 0.0;
+            double jitterLossPercent = lastTwoWndStats.decodedFrames > 0
+                    ? (double)lastTwoWndStats.pacerDroppedFrames / lastTwoWndStats.decodedFrames * 100
+                    : 0.0;
+            double decodeTimeMs = lastTwoWndStats.decodedFrames > 0
+                    ? (double)(lastTwoWndStats.totalDecodeTimeUs / 1000.0) / lastTwoWndStats.decodedFrames
+                    : 0.0;
+            double renderTimeMs = lastTwoWndStats.renderedFrames > 0
+                    ? (double)(lastTwoWndStats.totalRenderTimeUs / 1000.0) / lastTwoWndStats.renderedFrames
+                    : 0.0;
+            double hostLatencyMs = lastTwoWndStats.framesWithHostProcessingLatency > 0
+                    ? (double)lastTwoWndStats.totalHostProcessingLatency / 10 /
+                      lastTwoWndStats.framesWithHostProcessingLatency
+                    : 0.0;
+
+            ConnectionQuality::get()->publishStats(
+                        m_VideoDecoderCtx->width,
+                        m_VideoDecoderCtx->height,
+                        lastTwoWndStats.totalFps,
+                        getCodecName(),
+                        m_BwTracker.GetAverageMbps(),
+                        rttMs,
+                        rttVarianceMs,
+                        networkLossPercent,
+                        jitterLossPercent,
+                        decodeTimeMs,
+                        renderTimeMs,
+                        hostLatencyMs);
         }
 
         // Accumulate these values into the global stats
