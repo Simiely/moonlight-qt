@@ -1,5 +1,6 @@
 #include "streaming/session.h"
 #include "gui/shortcutoverlay.h"
+#include "gui/connectionquality.h"
 
 #include <Limelight.h>
 #include "SDL_compat.h"
@@ -184,6 +185,18 @@ void SdlInputHandler::performSpecialKeyCombo(KeyCombo combo)
 
         // 唤出/隐藏快捷键帮助悬浮窗
         ShortcutOverlay::get()->toggle();
+        break;
+
+    case KeyComboToggleQualityBar:
+        ConnectionQuality::get()->toggleBar();
+        break;
+
+    case KeyComboDecreaseOverlayScale:
+        ConnectionQuality::get()->adjustScale(-1);
+        break;
+
+    case KeyComboIncreaseOverlayScale:
+        ConnectionQuality::get()->adjustScale(1);
         break;
 
     default:
