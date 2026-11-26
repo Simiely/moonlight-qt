@@ -128,7 +128,9 @@ Window {
                 { keys: "Ctrl+Alt+Shift+H", desc: qsTr("显示 / 隐藏本帮助") },
                 { keys: "Ctrl+Alt+Shift+B", desc: qsTr("显示 / 隐藏连接质量横条") },
                 { keys: "Ctrl+Alt+Shift+[", desc: qsTr("缩小连接质量横条") },
-                { keys: "Ctrl+Alt+Shift+]", desc: qsTr("放大连接质量横条") }
+                { keys: "Ctrl+Alt+Shift+]", desc: qsTr("放大连接质量横条") },
+                { keys: "Ctrl+Alt+Shift+-", desc: qsTr("降低横条背景透明度") },
+                { keys: "Ctrl+Alt+Shift+=", desc: qsTr("提高横条背景透明度") }
             ]
             delegate: Row {
                 anchors.left: parent.left
