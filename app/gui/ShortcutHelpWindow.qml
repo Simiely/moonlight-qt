@@ -13,8 +13,6 @@ Window {
 
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
     color: "transparent"
-    transientParent: null
-
     width: 460
     height: 520
 
