@@ -158,6 +158,17 @@ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, i
     m_SpecialKeyCombos[KeyComboIncreaseOverlayScale].scanCode = SDL_SCANCODE_RIGHTBRACKET;
     m_SpecialKeyCombos[KeyComboIncreaseOverlayScale].enabled = true;
 
+    // 横条背景透明度
+    m_SpecialKeyCombos[KeyComboDecreaseBarOpacity].keyCombo = KeyComboDecreaseBarOpacity;
+    m_SpecialKeyCombos[KeyComboDecreaseBarOpacity].keyCode = SDLK_MINUS;
+    m_SpecialKeyCombos[KeyComboDecreaseBarOpacity].scanCode = SDL_SCANCODE_MINUS;
+    m_SpecialKeyCombos[KeyComboDecreaseBarOpacity].enabled = true;
+
+    m_SpecialKeyCombos[KeyComboIncreaseBarOpacity].keyCombo = KeyComboIncreaseBarOpacity;
+    m_SpecialKeyCombos[KeyComboIncreaseBarOpacity].keyCode = SDLK_EQUALS;
+    m_SpecialKeyCombos[KeyComboIncreaseBarOpacity].scanCode = SDL_SCANCODE_EQUALS;
+    m_SpecialKeyCombos[KeyComboIncreaseBarOpacity].enabled = true;
+
     m_OldIgnoreDevices = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES);
     m_OldIgnoreDevicesExcept = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT);
 
