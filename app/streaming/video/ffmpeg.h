@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <QQueue>
+#include <QString>
 #include <set>
 
 #include "../bandwidth.h"
@@ -49,6 +50,8 @@ private:
                                 PDECODER_PARAMETERS params,
                                 TestMode testMode,
                                 bool useAlternateFrontend);
+
+    QString getCodecName();
 
     void stringifyVideoStats(VIDEO_STATS& stats, char* output, int length);
 
