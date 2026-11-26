@@ -199,6 +199,14 @@ void SdlInputHandler::performSpecialKeyCombo(KeyCombo combo)
         ConnectionQuality::get()->adjustScale(1);
         break;
 
+    case KeyComboDecreaseBarOpacity:
+        ConnectionQuality::get()->adjustOpacity(-1);
+        break;
+
+    case KeyComboIncreaseBarOpacity:
+        ConnectionQuality::get()->adjustOpacity(1);
+        break;
+
     default:
         Q_UNREACHABLE();
     }
