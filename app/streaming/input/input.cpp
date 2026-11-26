@@ -141,6 +141,23 @@ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, i
     m_SpecialKeyCombos[KeyComboToggleShortcuts].scanCode = SDL_SCANCODE_H;
     m_SpecialKeyCombos[KeyComboToggleShortcuts].enabled = true;
 
+    // 串流中临时显隐连接质量横条
+    m_SpecialKeyCombos[KeyComboToggleQualityBar].keyCombo = KeyComboToggleQualityBar;
+    m_SpecialKeyCombos[KeyComboToggleQualityBar].keyCode = SDLK_b;
+    m_SpecialKeyCombos[KeyComboToggleQualityBar].scanCode = SDL_SCANCODE_B;
+    m_SpecialKeyCombos[KeyComboToggleQualityBar].enabled = true;
+
+    // 连接质量横条的整体缩放（串流中鼠标被锁定，用快捷键调节）
+    m_SpecialKeyCombos[KeyComboDecreaseOverlayScale].keyCombo = KeyComboDecreaseOverlayScale;
+    m_SpecialKeyCombos[KeyComboDecreaseOverlayScale].keyCode = SDLK_LEFTBRACKET;
+    m_SpecialKeyCombos[KeyComboDecreaseOverlayScale].scanCode = SDL_SCANCODE_LEFTBRACKET;
+    m_SpecialKeyCombos[KeyComboDecreaseOverlayScale].enabled = true;
+
+    m_SpecialKeyCombos[KeyComboIncreaseOverlayScale].keyCombo = KeyComboIncreaseOverlayScale;
+    m_SpecialKeyCombos[KeyComboIncreaseOverlayScale].keyCode = SDLK_RIGHTBRACKET;
+    m_SpecialKeyCombos[KeyComboIncreaseOverlayScale].scanCode = SDL_SCANCODE_RIGHTBRACKET;
+    m_SpecialKeyCombos[KeyComboIncreaseOverlayScale].enabled = true;
+
     m_OldIgnoreDevices = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES);
     m_OldIgnoreDevicesExcept = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT);
 
