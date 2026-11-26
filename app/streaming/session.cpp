@@ -2,6 +2,7 @@
 #include "settings/streamingpreferences.h"
 #include "streaming/streamutils.h"
 #include "backend/richpresencemanager.h"
+#include "gui/connectionquality.h"
 
 #include <Limelight.h>
 #include "SDL_compat.h"
@@ -1269,6 +1270,9 @@ private:
 
     void run() override
     {
+        // 会话结束：隐藏连接质量悬浮窗
+        ConnectionQuality::get()->setActive(false);
+
         // Only quit the running app if our session terminated gracefully
         bool shouldQuit =
                 !m_Session->m_UnexpectedTermination &&
@@ -1728,6 +1732,9 @@ bool Session::startConnectionAsync()
         // listener.
         return false;
     }
+
+    // 显示连接质量悬浮窗（实际显隐由开关与会话状态共同决定）
+    ConnectionQuality::get()->setActive(true);
 
     emit connectionStarted();
     return true;
