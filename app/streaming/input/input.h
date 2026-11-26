@@ -169,6 +169,9 @@ private:
         KeyComboQuitAndExit,
         KeyComboToggleKeyboardGrab,
         KeyComboToggleShortcuts,
+        KeyComboToggleQualityBar,
+        KeyComboDecreaseOverlayScale,
+        KeyComboIncreaseOverlayScale,
         KeyComboMax
     };
 
