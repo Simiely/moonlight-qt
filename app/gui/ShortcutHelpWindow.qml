@@ -3,23 +3,30 @@ import QtQuick.Controls 2.2
 import QtQuick.Window 2.2
 
 import ShortcutOverlay 1.0
+import ConnectionQuality 1.0
 
 /*
  * 串流中按 Ctrl+Alt+Shift+H 唤出的快捷键帮助悬浮窗。
  * 独立置顶窗口，串流时主窗口隐藏也不受影响；可拖动，再按一次 H 关闭。
+ * 串流结束时随会话自动隐藏，避免窗口残留桌面。
  */
 Window {
     id: helpWindow
 
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
     color: "transparent"
-    width: 460
-    height: 520
+    // 小屏时收窄/收矮，避免窗口超出可用区域
+    width: Screen.desktopAvailableWidth > 0
+           ? Math.min(460, Screen.desktopAvailableWidth - 16)
+           : 460
+    height: Screen.desktopAvailableHeight > 0
+            ? Math.min(520, Screen.desktopAvailableHeight - 16)
+            : 520
 
     property real savedX: -1
     property real savedY: -1
 
-    visible: ShortcutOverlay.visible
+    visible: ConnectionQuality.active && ShortcutOverlay.visible
 
     onVisibleChanged: {
         if (visible && savedX < 0) {
@@ -85,10 +92,18 @@ Window {
             }
             onPositionChanged: {
                 if (pressed) {
-                    helpWindow.x += mouseX - lastX
-                    helpWindow.y += mouseY - lastY
-                    helpWindow.savedX = helpWindow.x
-                    helpWindow.savedY = helpWindow.y
+                    // 保证窗口至少有 80px 留在屏幕内，防止拖出后找不回来
+                    var nx = helpWindow.x + (mouseX - lastX)
+                    var ny = helpWindow.y + (mouseY - lastY)
+                    nx = Math.max(80 - helpWindow.width,
+                                  Math.min(Screen.desktopAvailableWidth - 80, nx))
+                    ny = Math.max(0, Math.min(Screen.desktopAvailableHeight - 30, ny))
+                    helpWindow.x = nx
+                    helpWindow.y = ny
+                    helpWindow.savedX = nx
+                    helpWindow.savedY = ny
+                    lastX = mouseX
+                    lastY = mouseY
                 }
             }
         }
