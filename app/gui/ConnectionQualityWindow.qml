@@ -19,9 +19,6 @@ Window {
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
     color: "transparent"
 
-    // 不跟随主窗口隐藏：串流时主窗口会被隐藏，但悬浮窗需独立显示
-    transientParent: null
-
     width: 860
     height: 58
 
