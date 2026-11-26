@@ -1935,6 +1935,30 @@ void Session::exec()
         SDL_SetWindowFullscreen(m_Window, m_FullScreenFlag);
     }
 
+    // 记录串流窗口的真实矩形，供连接质量横条/帮助窗精确定位。
+    // 不能用 Screen.desktopAvailableWidth（那是整个虚拟桌面的总宽度），
+    // 否则多屏时会把横条算到屏幕外。
+    {
+        int wx = 0, wy = 0, ww = 0, wh = 0;
+        SDL_GetWindowPosition(m_Window, &wx, &wy);
+        SDL_GetWindowSize(m_Window, &ww, &wh);
+
+        SDL_Rect displayBounds;
+        if (SDL_GetDisplayBounds(SDL_GetWindowDisplayIndex(m_Window), &displayBounds) == 0) {
+            // 全屏时窗口几何可能与显示器不一致，以显示器矩形为准
+            if (ww >= displayBounds.w - 8 && wh >= displayBounds.h - 8) {
+                wx = displayBounds.x;
+                wy = displayBounds.y;
+                ww = displayBounds.w;
+                wh = displayBounds.h;
+            }
+        }
+
+        if (ww > 0 && wh > 0) {
+            ConnectionQuality::get()->setStreamGeometry(wx, wy, ww, wh);
+        }
+    }
+
     bool needsFirstEnterCapture = false;
     bool needsPostDecoderCreationCapture = false;
 
