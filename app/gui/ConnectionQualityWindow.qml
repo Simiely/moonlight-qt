@@ -19,7 +19,10 @@ Window {
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
     color: "transparent"
 
-    width: 860
+    // 小屏时收窄，避免窗口超出可用区域（小于 860 时内容会被裁切，但不至于定位到屏外）
+    width: Screen.desktopAvailableWidth > 0
+           ? Math.min(860, Screen.desktopAvailableWidth - 16)
+           : 860
     height: 58
 
     // 位置记忆（仅记住坐标，不记住可见性）
@@ -75,10 +78,18 @@ Window {
         }
         onPositionChanged: {
             if (pressed) {
-                qualityWindow.x += mouseX - lastX
-                qualityWindow.y += mouseY - lastY
-                qualityWindow.savedX = qualityWindow.x
-                qualityWindow.savedY = qualityWindow.y
+                // 保证窗口至少有 80px 留在屏幕内，防止拖出后找不回来
+                var nx = qualityWindow.x + (mouseX - lastX)
+                var ny = qualityWindow.y + (mouseY - lastY)
+                nx = Math.max(80 - qualityWindow.width,
+                              Math.min(Screen.desktopAvailableWidth - 80, nx))
+                ny = Math.max(0, Math.min(Screen.desktopAvailableHeight - 30, ny))
+                qualityWindow.x = nx
+                qualityWindow.y = ny
+                qualityWindow.savedX = nx
+                qualityWindow.savedY = ny
+                lastX = mouseX
+                lastY = mouseY
             }
         }
     }
