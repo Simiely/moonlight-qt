@@ -1,4 +1,5 @@
 #include "streaming/session.h"
+#include "gui/shortcutoverlay.h"
 
 #include <Limelight.h>
 #include "SDL_compat.h"
@@ -175,6 +176,14 @@ void SdlInputHandler::performSpecialKeyCombo(KeyCombo combo)
         }
 
         updateKeyboardGrabState();
+        break;
+
+    case KeyComboToggleShortcuts:
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Detected shortcut help toggle combo");
+
+        // 唤出/隐藏快捷键帮助悬浮窗
+        ShortcutOverlay::get()->toggle();
         break;
 
     default:
