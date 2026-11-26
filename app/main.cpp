@@ -48,6 +48,8 @@
 #include "utils.h"
 #include "gui/computermodel.h"
 #include "gui/appmodel.h"
+#include "gui/connectionquality.h"
+#include "gui/shortcutoverlay.h"
 #include "backend/autoupdatechecker.h"
 #include "backend/computermanager.h"
 #include "backend/systemproperties.h"
@@ -968,6 +970,22 @@ int main(int argc, char *argv[])
                                                    [](QQmlEngine* qmlEngine, QJSEngine*) -> QObject* {
                                                        return StreamingPreferences::get(qmlEngine);
                                                    });
+    // 必须在主线程创建，确保跨线程 QueuedConnection 投递到 GUI 事件循环
+    ConnectionQuality::get(&app);
+    qmlRegisterSingletonType<ConnectionQuality>("ConnectionQuality", 1, 0,
+                                                "ConnectionQuality",
+                                                [](QQmlEngine* qmlEngine, QJSEngine*) -> QObject* {
+                                                    Q_UNUSED(qmlEngine)
+                                                    return ConnectionQuality::get();
+                                                });
+    // 快捷键帮助：同样在主线程预先创建，保证跨线程切回 GUI 线程
+    ShortcutOverlay::get(&app);
+    qmlRegisterSingletonType<ShortcutOverlay>("ShortcutOverlay", 1, 0,
+                                              "ShortcutOverlay",
+                                              [](QQmlEngine* qmlEngine, QJSEngine*) -> QObject* {
+                                                  Q_UNUSED(qmlEngine)
+                                                  return ShortcutOverlay::get();
+                                              });
 
     // Create the identity manager on the main thread
     IdentityManager::get();
