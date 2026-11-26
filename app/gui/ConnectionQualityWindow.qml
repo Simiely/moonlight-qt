@@ -6,41 +6,56 @@ import ConnectionQuality 1.0
 import StreamingPreferences 1.0
 
 /*
- * 独立连接质量悬浮窗（横条）。
+ * 连接质量横条（覆盖在串流画面顶部）。
  *
  * - 半透明、无边框、始终置顶，不进入任务栏（Qt.Tool）
- * - 整条可拖动，位置可记忆
+ * - 位置：串流画面顶部居中，跟随串流窗口所在显示器（双屏不会跑偏）
+ * - 大小：Ctrl+Alt+Shift+[ 缩小 / ] 放大，或拖右下角手柄
  * - 仅在串流中且设置开启时显示
- * - 数据来自 ConnectionQuality 单例（解码线程 -> 主线程安全传递）
  */
 Window {
     id: qualityWindow
 
-    // WindowDoesNotAcceptFocus：不抢键盘焦点，避免串流中点击/拖动后游戏按键失灵
+    // WindowDoesNotAcceptFocus：不抢键盘焦点，避免串流中点击后游戏按键失灵
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
 
-    // 小屏时收窄，避免窗口超出可用区域（小于 860 时内容会被裁切，但不至于定位到屏外）
-    width: Screen.desktopAvailableWidth > 0
-           ? Math.min(860, Screen.desktopAvailableWidth - 16)
-           : 860
-    height: 58
+    // 基准宽度：串流画面宽 - 16px，非串流时回退到当前屏幕
+    property real baseWidth: {
+        var avail = ConnectionQuality.streamWidth > 0
+                    ? ConnectionQuality.streamWidth
+                    : Screen.desktopAvailableWidth
+        return avail > 16 ? Math.min(860, avail - 16) : 860
+    }
 
-    // 位置记忆（仅记住坐标，不记住可见性）
-    property real savedX: -1
-    property real savedY: -1
+    // 基准高度
+    readonly property real baseHeight: 58
 
-    visible: ConnectionQuality.active && StreamingPreferences.showConnectionQualityWindow
+    // 整体缩放：窗口尺寸随缩放变化，内部按基准尺寸布局后统一缩放
+    readonly property real uiScale: ConnectionQuality.uiScale
+    width: baseWidth * uiScale
+    height: baseHeight * uiScale
 
-    // 首次显示时定位到屏幕顶部居中，之后沿用用户拖动的位置
-    onVisibleChanged: {
-        if (visible && savedX < 0) {
-            savedX = (Screen.desktopAvailableWidth - qualityWindow.width) / 2
-            savedY = 8
-        }
-        if (visible) {
-            qualityWindow.x = savedX
-            qualityWindow.y = savedY
+    // 贴在串流画面顶部居中。
+    // 用 ConnectionQuality.streamX/streamY（串流窗口的真实桌面矩形）定位，
+    // 而不是 Screen.desktopAvailableWidth（那是虚拟桌面总宽，双屏会算到屏幕外）。
+    x: {
+        var avail = ConnectionQuality.streamWidth > 0
+                    ? ConnectionQuality.streamWidth
+                    : Screen.desktopAvailableWidth
+        return ConnectionQuality.streamX + Math.max(0, (avail - width) / 2)
+    }
+    y: ConnectionQuality.streamY + 8
+
+    // 设置只决定串流开始时的初始状态；串流中可用 Ctrl+Alt+Shift+B 随时呼出/收起
+    visible: ConnectionQuality.active && ConnectionQuality.barEnabled
+
+    Connections {
+        target: ConnectionQuality
+        function onActiveChanged() {
+            if (ConnectionQuality.active) {
+                ConnectionQuality.setBarVisible(StreamingPreferences.showConnectionQualityWindow)
+            }
         }
     }
 
@@ -58,236 +73,255 @@ Window {
         return "#ff5252"
     }
 
-    Rectangle {
-        anchors.fill: parent
-        radius: 10
-        color: "#e622262d"
-        border.color: "#555b66"
-        border.width: 1
-    }
+    // 内容以基准尺寸布局，再整体缩放，保证放大时比例一致
+    Item {
+        id: content
+        width: qualityWindow.baseWidth
+        height: qualityWindow.baseHeight
+        scale: qualityWindow.uiScale
+        transformOrigin: Item.TopLeft
 
-    // 整条拖动
-    MouseArea {
-        id: dragArea
-        anchors.fill: parent
-        z: 1
-        property real lastX
-        property real lastY
-        onPressed: {
-            lastX = mouseX
-            lastY = mouseY
-        }
-        onPositionChanged: {
-            if (pressed) {
-                // 保证窗口至少有 80px 留在屏幕内，防止拖出后找不回来
-                var nx = qualityWindow.x + (mouseX - lastX)
-                var ny = qualityWindow.y + (mouseY - lastY)
-                nx = Math.max(80 - qualityWindow.width,
-                              Math.min(Screen.desktopAvailableWidth - 80, nx))
-                ny = Math.max(0, Math.min(Screen.desktopAvailableHeight - 30, ny))
-                qualityWindow.x = nx
-                qualityWindow.y = ny
-                qualityWindow.savedX = nx
-                qualityWindow.savedY = ny
-                lastX = mouseX
-                lastY = mouseY
-            }
-        }
-    }
-
-    Row {
-        id: contentRow
-        anchors.left: parent.left
-        anchors.leftMargin: 14
-        anchors.right: parent.right
-        anchors.rightMargin: 34
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 0
-        z: 2
-
-        // 每项：上方中文标签，下方数值
-        Item {
-            width: 66
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 2
-                Label {
-                    text: qsTr("连接质量")
-                    color: "#ffffff"
-                    font.pixelSize: 12
-                    font.bold: true
-                }
-                Label {
-                    text: qsTr("实时")
-                    color: "#80cbc4"
-                    font.pixelSize: 10
-                }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 96
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("分辨率"); color: "#90a4ae"; font.pixelSize: 10 }
-                Label {
-                    text: "%1×%2".arg(ConnectionQuality.width).arg(ConnectionQuality.height)
-                    color: "#e0e0e0"; font.pixelSize: 13
-                }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 112
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("编码"); color: "#90a4ae"; font.pixelSize: 10 }
-                Label { text: ConnectionQuality.codec; color: "#80cbc4"; font.pixelSize: 12 }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 62
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("帧率"); color: "#90a4ae"; font.pixelSize: 10 }
-                Label {
-                    text: "%1 FPS".arg(ConnectionQuality.fps.toFixed(0))
-                    color: "#e0e0e0"; font.pixelSize: 13
-                }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 88
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("码率"); color: "#90a4ae"; font.pixelSize: 10 }
-                Label {
-                    text: "%1 Mbps".arg(ConnectionQuality.bitrateMbps.toFixed(1))
-                    color: "#ffffff"; font.pixelSize: 13; font.bold: true
-                }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 96
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("延迟"); color: "#90a4ae"; font.pixelSize: 10 }
-                Row {
-                    spacing: 5
-                    Label {
-                        text: "%1 ms".arg(ConnectionQuality.rttMs)
-                        color: rttColor(ConnectionQuality.rttMs)
-                        font.pixelSize: 14; font.bold: true
-                    }
-                    Label {
-                        text: ConnectionQuality.rttVarianceMs > 0
-                              ? ("±%1".arg(ConnectionQuality.rttVarianceMs)) : ""
-                        color: "#90a4ae"; font.pixelSize: 10
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 128
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("丢包 / 抖动丢包"); color: "#90a4ae"; font.pixelSize: 10 }
-                Row {
-                    spacing: 5
-                    Label {
-                        text: "%1%".arg(ConnectionQuality.networkLossPercent.toFixed(1))
-                        color: lossColor(ConnectionQuality.networkLossPercent)
-                        font.pixelSize: 13; font.bold: true
-                    }
-                    Label { text: "/"; color: "#607d8b"; font.pixelSize: 12 }
-                    Label {
-                        text: "%1%".arg(ConnectionQuality.jitterLossPercent.toFixed(1))
-                        color: lossColor(ConnectionQuality.jitterLossPercent)
-                        font.pixelSize: 13; font.bold: true
-                    }
-                }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 70
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("解码"); color: "#90a4ae"; font.pixelSize: 10 }
-                Label {
-                    text: "%1 ms".arg(ConnectionQuality.decodeTimeMs.toFixed(1))
-                    color: "#e0e0e0"; font.pixelSize: 13
-                }
-            }
-        }
-
-        Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
-
-        Item {
-            width: 78
-            height: 44
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Label { text: qsTr("主机处理"); color: "#90a4ae"; font.pixelSize: 10 }
-                Label {
-                    text: ConnectionQuality.hostProcessingLatencyMs > 0
-                          ? ("%1 ms".arg(ConnectionQuality.hostProcessingLatencyMs.toFixed(1)))
-                          : "—"
-                    color: "#e0e0e0"; font.pixelSize: 13
-                }
-            }
-        }
-    }
-
-    // 临时隐藏按钮（最上层，可点击）
-    Label {
-        anchors.right: parent.right
-        anchors.rightMargin: 10
-        anchors.verticalCenter: parent.verticalCenter
-        text: "×"
-        color: "#b0bec5"
-        font.pixelSize: 20
-        z: 3
-
-        MouseArea {
+        Rectangle {
             anchors.fill: parent
-            anchors.margins: -6
-            onClicked: StreamingPreferences.showConnectionQualityWindow = false
+            radius: 10
+            color: "#e622262d"
+            border.color: "#555b66"
+            border.width: 1
+        }
+
+        Row {
+            id: contentRow
+            anchors.left: parent.left
+            anchors.leftMargin: 14
+            anchors.right: parent.right
+            anchors.rightMargin: 34
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 0
+            z: 2
+
+            // 每项：上方中文标签，下方数值
+            Item {
+                width: 66
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 2
+                    Label {
+                        text: qsTr("连接质量")
+                        color: "#ffffff"
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    Label {
+                        text: qsTr("实时")
+                        color: "#80cbc4"
+                        font.pixelSize: 10
+                    }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 96
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("分辨率"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Label {
+                        text: "%1×%2".arg(ConnectionQuality.width).arg(ConnectionQuality.height)
+                        color: "#e0e0e0"; font.pixelSize: 13
+                    }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 112
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("编码"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Label { text: ConnectionQuality.codec; color: "#80cbc4"; font.pixelSize: 12 }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 62
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("帧率"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Label {
+                        text: "%1 FPS".arg(ConnectionQuality.fps.toFixed(0))
+                        color: "#e0e0e0"; font.pixelSize: 13
+                    }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 88
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("码率"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Label {
+                        text: "%1 Mbps".arg(ConnectionQuality.bitrateMbps.toFixed(1))
+                        color: "#ffffff"; font.pixelSize: 13; font.bold: true
+                    }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 96
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("延迟"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Row {
+                        spacing: 5
+                        Label {
+                            text: "%1 ms".arg(ConnectionQuality.rttMs)
+                            color: rttColor(ConnectionQuality.rttMs)
+                            font.pixelSize: 14; font.bold: true
+                        }
+                        Label {
+                            text: ConnectionQuality.rttVarianceMs > 0
+                                  ? ("±%1".arg(ConnectionQuality.rttVarianceMs)) : ""
+                            color: "#90a4ae"; font.pixelSize: 10
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 128
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("丢包 / 抖动丢包"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Row {
+                        spacing: 5
+                        Label {
+                            text: "%1%".arg(ConnectionQuality.networkLossPercent.toFixed(1))
+                            color: lossColor(ConnectionQuality.networkLossPercent)
+                            font.pixelSize: 13; font.bold: true
+                        }
+                        Label { text: "/"; color: "#607d8b"; font.pixelSize: 12 }
+                        Label {
+                            text: "%1%".arg(ConnectionQuality.jitterLossPercent.toFixed(1))
+                            color: lossColor(ConnectionQuality.jitterLossPercent)
+                            font.pixelSize: 13; font.bold: true
+                        }
+                    }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 70
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("解码"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Label {
+                        text: "%1 ms".arg(ConnectionQuality.decodeTimeMs.toFixed(1))
+                        color: "#e0e0e0"; font.pixelSize: 13
+                    }
+                }
+            }
+
+            Rectangle { width: 1; height: 30; color: "#455a64"; anchors.verticalCenter: parent.verticalCenter }
+
+            Item {
+                width: 78
+                height: 44
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Label { text: qsTr("主机处理"); color: "#90a4ae"; font.pixelSize: 10 }
+                    Label {
+                        text: ConnectionQuality.hostProcessingLatencyMs > 0
+                              ? ("%1 ms".arg(ConnectionQuality.hostProcessingLatencyMs.toFixed(1)))
+                              : "—"
+                        color: "#e0e0e0"; font.pixelSize: 13
+                    }
+                }
+            }
+        }
+
+        // 临时隐藏按钮（最上层，可点击）
+        Label {
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            anchors.verticalCenter: parent.verticalCenter
+            text: "×"
+            color: "#b0bec5"
+            font.pixelSize: 20
+            z: 3
+
+            MouseArea {
+                anchors.fill: parent
+                anchors.margins: -6
+                onClicked: StreamingPreferences.showConnectionQualityWindow = false
+            }
+        }
+
+        // 右下角缩放手柄：拖动可整体放大/缩小（串流中鼠标被锁定时请用快捷键）
+        Rectangle {
+            id: scaleHandle
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            width: 18
+            height: 18
+            color: "transparent"
+            z: 4
+
+            // 视觉提示：右下角两道斜线
+            Rectangle {
+                width: 9; height: 1; color: "#80cbc4"; opacity: 0.7
+                rotation: -45
+                x: 5; y: 12
+            }
+            Rectangle {
+                width: 5; height: 1; color: "#80cbc4"; opacity: 0.5
+                rotation: -45
+                x: 9; y: 14
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                property real startGlobalX: 0
+                property real startScale: 1.0
+                onPressed: {
+                    startGlobalX = mapToGlobal(mouseX, 0).x
+                    startScale = ConnectionQuality.uiScale
+                }
+                onPositionChanged: {
+                    if (pressed) {
+                        var dx = mapToGlobal(mouseX, 0).x - startGlobalX
+                        ConnectionQuality.setScale(startScale + dx / 600.0)
+                    }
+                }
+            }
         }
     }
 }
