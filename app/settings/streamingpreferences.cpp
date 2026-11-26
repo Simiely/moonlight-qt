@@ -145,7 +145,8 @@ void StreamingPreferences::reload()
     gamepadMouse = settings.value(SER_GAMEPADMOUSE, true).toBool();
     detectNetworkBlocking = settings.value(SER_DETECTNETBLOCKING, true).toBool();
     showPerformanceOverlay = settings.value(SER_SHOWPERFOVERLAY, false).toBool();
-    showConnectionQualityWindow = settings.value(SER_SHOWCONNQUALITY, false).toBool();
+    // 本 fork 默认开启连接质量横条
+    showConnectionQualityWindow = settings.value(SER_SHOWCONNQUALITY, true).toBool();
     packetSize = settings.value(SER_PACKETSIZE, 0).toInt();
     swapMouseButtons = settings.value(SER_SWAPMOUSEBUTTONS, false).toBool();
     muteOnFocusLoss = settings.value(SER_MUTEONFOCUSLOSS, false).toBool();
@@ -171,8 +172,9 @@ void StreamingPreferences::reload()
     uiDisplayMode = static_cast<UIDisplayMode>(settings.value(SER_UIDISPLAYMODE,
                                                static_cast<int>(settings.value(SER_STARTWINDOWED, true).toBool() ? UIDisplayMode::UI_WINDOWED
                                                                                                                  : UIDisplayMode::UI_MAXIMIZED)).toInt());
+    // 本 fork 默认简体中文：不依赖 QLocale 检测，避免 LANG 环境变量把界面变成英文
     language = static_cast<Language>(settings.value(SER_LANGUAGE,
-                                                    static_cast<int>(Language::LANG_AUTO)).toInt());
+                                                    static_cast<int>(Language::LANG_ZH_CN)).toInt());
 
 
     // Perform default settings updates as required based on last default version
