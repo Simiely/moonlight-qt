@@ -16,29 +16,37 @@ Window {
     // WindowDoesNotAcceptFocus：不抢键盘焦点，避免串流中点击/拖动后游戏按键失灵
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
-    // 小屏时收窄/收矮，避免窗口超出可用区域
-    width: Screen.desktopAvailableWidth > 0
-           ? Math.min(460, Screen.desktopAvailableWidth - 16)
-           : 460
-    height: Screen.desktopAvailableHeight > 0
-            ? Math.min(520, Screen.desktopAvailableHeight - 16)
-            : 520
+    // 尺寸跟随串流画面（留 16px），非串流时回退到当前屏幕
+    width: {
+        var avail = ConnectionQuality.streamWidth > 0
+                    ? ConnectionQuality.streamWidth
+                    : Screen.desktopAvailableWidth
+        return avail > 16 ? Math.min(460, avail - 16) : 460
+    }
+    height: {
+        var avail = ConnectionQuality.streamHeight > 0
+                    ? ConnectionQuality.streamHeight
+                    : Screen.desktopAvailableHeight
+        return avail > 16 ? Math.min(640, avail - 16) : 640
+    }
 
-    property real savedX: -1
-    property real savedY: -1
+    // 居中于串流画面（全局坐标，跟随串流窗口所在显示器）
+    x: {
+        var baseX = ConnectionQuality.streamX
+        var avail = ConnectionQuality.streamWidth > 0
+                    ? ConnectionQuality.streamWidth
+                    : Screen.desktopAvailableWidth
+        return baseX + Math.max(0, (avail - width) / 2)
+    }
+    y: {
+        var baseY = ConnectionQuality.streamY
+        var avail = ConnectionQuality.streamHeight > 0
+                    ? ConnectionQuality.streamHeight
+                    : Screen.desktopAvailableHeight
+        return baseY + Math.max(0, (avail - height) / 2)
+    }
 
     visible: ConnectionQuality.active && ShortcutOverlay.visible
-
-    onVisibleChanged: {
-        if (visible && savedX < 0) {
-            savedX = (Screen.desktopAvailableWidth - helpWindow.width) / 2
-            savedY = (Screen.desktopAvailableHeight - helpWindow.height) / 2
-        }
-        if (visible) {
-            helpWindow.x = savedX
-            helpWindow.y = savedY
-        }
-    }
 
     Rectangle {
         anchors.fill: parent
@@ -83,31 +91,7 @@ Window {
             font.pixelSize: 12
         }
 
-        MouseArea {
-            anchors.fill: parent
-            property real lastX
-            property real lastY
-            onPressed: {
-                lastX = mouseX
-                lastY = mouseY
-            }
-            onPositionChanged: {
-                if (pressed) {
-                    // 保证窗口至少有 80px 留在屏幕内，防止拖出后找不回来
-                    var nx = helpWindow.x + (mouseX - lastX)
-                    var ny = helpWindow.y + (mouseY - lastY)
-                    nx = Math.max(80 - helpWindow.width,
-                                  Math.min(Screen.desktopAvailableWidth - 80, nx))
-                    ny = Math.max(0, Math.min(Screen.desktopAvailableHeight - 30, ny))
-                    helpWindow.x = nx
-                    helpWindow.y = ny
-                    helpWindow.savedX = nx
-                    helpWindow.savedY = ny
-                    lastX = mouseX
-                    lastY = mouseY
-                }
-            }
-        }
+        // 位置固定居中，不再提供拖动（串流中鼠标锁定，拖动本就无法操作）
     }
 
     Column {
@@ -141,7 +125,10 @@ Window {
                 { keys: "Ctrl+Alt+Shift+L", desc: qsTr("切换指针区域锁定") },
                 { keys: "Ctrl+Alt+Shift+E", desc: qsTr("断开并退出 Moonlight") },
                 { keys: "Ctrl+Alt+Shift+K", desc: qsTr("切换系统按键捕获") },
-                { keys: "Ctrl+Alt+Shift+H", desc: qsTr("显示 / 隐藏本帮助") }
+                { keys: "Ctrl+Alt+Shift+H", desc: qsTr("显示 / 隐藏本帮助") },
+                { keys: "Ctrl+Alt+Shift+B", desc: qsTr("显示 / 隐藏连接质量横条") },
+                { keys: "Ctrl+Alt+Shift+[", desc: qsTr("缩小连接质量横条") },
+                { keys: "Ctrl+Alt+Shift+]", desc: qsTr("放大连接质量横条") }
             ]
             delegate: Row {
                 anchors.left: parent.left
