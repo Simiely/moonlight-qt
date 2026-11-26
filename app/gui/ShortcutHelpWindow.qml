@@ -13,7 +13,8 @@ import ConnectionQuality 1.0
 Window {
     id: helpWindow
 
-    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
+    // WindowDoesNotAcceptFocus：不抢键盘焦点，避免串流中点击/拖动后游戏按键失灵
+    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool | Qt.WindowDoesNotAcceptFocus
     color: "transparent"
     // 小屏时收窄/收矮，避免窗口超出可用区域
     width: Screen.desktopAvailableWidth > 0
