@@ -9,6 +9,13 @@ on:
       ci_version:
         required: true
         type: string
+  workflow_dispatch:
+    inputs:
+      ci_version:
+        description: 'CI version label'
+        required: false
+        type: string
+        default: 'custom'
 
 jobs:
   build:
