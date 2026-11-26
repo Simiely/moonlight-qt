@@ -101,7 +101,7 @@ Window {
             anchors.left: parent.left
             anchors.leftMargin: 14
             anchors.right: parent.right
-            anchors.rightMargin: 34
+            anchors.rightMargin: 14
             anchors.verticalCenter: parent.verticalCenter
             spacing: 0
             z: 2
@@ -275,22 +275,8 @@ Window {
             }
         }
 
-        // 临时隐藏按钮（最上层，可点击）
-        Label {
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            text: "×"
-            color: "#b0bec5"
-            font.pixelSize: 20
-            z: 3
-
-            MouseArea {
-                anchors.fill: parent
-                anchors.margins: -6
-                onClicked: StreamingPreferences.showConnectionQualityWindow = false
-            }
-        }
+        // 不设关闭按钮：串流中鼠标被游戏锁定，按钮点不到，
+        // 显隐统一交给 Ctrl+Alt+Shift+B，避免留一个永远点不到的死元素。
 
         // 右下角缩放手柄：拖动可整体放大/缩小（串流中鼠标被锁定时请用快捷键）
         Rectangle {
