@@ -25,12 +25,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Windows
+          # Windows only (macOS build removed for this fork)
           - os: windows-2025
             qt_version: 6.12.1
-          # macOS
-          - os: macos-26
-            qt_version: 6.11.3
 
     runs-on: ${{ matrix.os }}
 
