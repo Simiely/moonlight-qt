@@ -135,6 +135,12 @@ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, i
     m_SpecialKeyCombos[KeyComboToggleKeyboardGrab].scanCode = SDL_SCANCODE_K;
     m_SpecialKeyCombos[KeyComboToggleKeyboardGrab].enabled = WMUtils::isRunningDesktopEnvironment();
 
+    // Ctrl+Alt+Shift+H：唤出快捷键帮助悬浮窗
+    m_SpecialKeyCombos[KeyComboToggleShortcuts].keyCombo = KeyComboToggleShortcuts;
+    m_SpecialKeyCombos[KeyComboToggleShortcuts].keyCode = SDLK_h;
+    m_SpecialKeyCombos[KeyComboToggleShortcuts].scanCode = SDL_SCANCODE_H;
+    m_SpecialKeyCombos[KeyComboToggleShortcuts].enabled = true;
+
     m_OldIgnoreDevices = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES);
     m_OldIgnoreDevicesExcept = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT);
 
