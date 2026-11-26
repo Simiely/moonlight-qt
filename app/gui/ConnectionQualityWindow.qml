@@ -31,8 +31,15 @@ Window {
     // 基准高度
     readonly property real baseHeight: 58
 
-    // 整体缩放：窗口尺寸随缩放变化，内部按基准尺寸布局后统一缩放
-    readonly property real uiScale: ConnectionQuality.uiScale
+    // 整体缩放：窗口尺寸随缩放变化，内部按基准尺寸布局后统一缩放。
+    // 上限按可用宽度动态收敛，避免小屏放大后超出屏幕被裁切。
+    readonly property real uiScale: {
+        var avail = ConnectionQuality.streamWidth > 0
+                    ? ConnectionQuality.streamWidth
+                    : Screen.desktopAvailableWidth
+        var maxScale = (avail > 0 && baseWidth > 0) ? (avail / baseWidth) : 1.6
+        return Math.max(0.6, Math.min(ConnectionQuality.uiScale, Math.min(1.6, maxScale)))
+    }
     width: baseWidth * uiScale
     height: baseHeight * uiScale
 
