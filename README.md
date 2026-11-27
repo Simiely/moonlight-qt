@@ -39,14 +39,16 @@
 
 ## 下载与构建
 
-仓库暂不发布安装包，构建产物从 GitHub Actions 获取：
+**直接下载**：[v1.3.0 Windows x64 便携包](https://github.com/Simiely/moonlight-qt/releases/download/v1.3.0/Moonlight-Windows-x64-v1.3.0.zip)（35.7 MB），解压后运行 `Moonlight.exe`，无需安装。
+
+也可以从 GitHub Actions 获取最新构建：
 
 ```bash
 gh workflow run build-win-mac.yml --ref master
 gh run download <run-id> -n Moonlight-Windows-x64-v120
 ```
 
-解压后直接运行 `Moonlight.exe`（便携目录，无需安装）。本地构建的工具链要求与各平台命令见 [构建与出包](docs/构建.md)。
+本地构建的工具链要求与各平台命令见 [构建与出包](docs/构建.md)。
 
 ## 文档
 
