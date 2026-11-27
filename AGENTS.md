@@ -1,6 +1,6 @@
 # AGENTS.md · moonlight-qt (Simiely fork) 项目规则
 
-> 📌 **文档基线**：2026-11-27（`9e295b1`）—— 四件套补齐、机器层接入、知识库归档
+> 📌 **文档基线**：2026-11-27（`3d4f556`）—— 四件套补齐、机器层接入、文档收口
 > **更新文档/代码后，请更新此行**（日期 + 新 commit hash），并在 CHANGELOG 追加版本
 
 本仓库是官方 moonlight-qt 的个人 fork，增加了连接质量横条与快捷键帮助窗。回答相关问题前先读这份，再读 [docs/index.md](docs/index.md)。
