@@ -59,6 +59,7 @@ gh run list --workflow build-win-mac.yml --limit 3
 - 产物是**便携目录**，不是安装器；解压后直接运行 `Moonlight.exe`。
 - `Moonlight.exe` 的文件版本跟上游走（6.2.0.0），fork 版本看 Artifact 名称与 `CHANGELOG.md`。
 - 连续 push 多个提交时，只有最后一个 push 构建可能存活；重要出包一律手动 dispatch。
+- 若 dispatch 返回 `422 Actions has been disabled for this repository`，先打开仓库 Actions 页确认 fork 的启用按钮；此时 `GET /actions/permissions` 仍可能显示 `enabled: true`，不要只信 API。启用后 push 与 dispatch 才会恢复。
 
 ## 关联
 
