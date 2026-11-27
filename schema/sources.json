@@ -1,0 +1,37 @@
+{
+  "_comment": "真源映射：truth 为改造涉及的源码，docs 为必须同步的文档。co_change 用于 PR 的同 PR 校验。",
+  "code": [
+    {
+      "truth": "app/gui/connectionquality.h",
+      "patterns": ["Q_PROPERTY\\([^ ]+ (\\w+) "],
+      "docs": [
+        "docs/改造说明.md",
+        "docs/walkthrough/capabilities.md"
+      ],
+      "co_change": true,
+      "co_change_docs": [
+        "docs/改造说明.md",
+        "docs/walkthrough/capabilities.md"
+      ]
+    },
+    {
+      "truth": "app/gui/shortcutoverlay.h",
+      "patterns": ["Q_PROPERTY\\([^ ]+ (\\w+) ", "Q_INVOKABLE [^ ]+ (\\w+)\\("],
+      "docs": [
+        "docs/改造说明.md",
+        "docs/walkthrough/capabilities.md"
+      ],
+      "co_change": true,
+      "co_change_docs": [
+        "docs/改造说明.md",
+        "docs/walkthrough/capabilities.md"
+      ]
+    },
+    {
+      "truth": "app/settings/streamingpreferences.h",
+      "patterns": ["Q_PROPERTY\\(bool (\\w+)"],
+      "docs": ["docs/改造说明.md"],
+      "co_change": false
+    }
+  ]
+}

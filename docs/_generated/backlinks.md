@@ -19,5 +19,8 @@ related: []
 
 | 目标 id / 技能 | 来源 id | 关系 | 来源页面 |
 |---|---|---|---|
+| `docs.modification` | [构建与出包](../构建.md) | see-also | `docs/构建.md` |
 | `docs.modification` | [解码线程数据无法刷新 QML 悬浮窗](../问题记录/跨线程QML数据桥接.md) | applies-to（反向：has-pitfall；来自 applies_to 字段） | `docs/问题记录/跨线程QML数据桥接.md` |
+| `docs.modification` | [解码线程数据无法刷新 QML 悬浮窗](../问题记录/跨线程QML数据桥接.md) | see-also | `docs/问题记录/跨线程QML数据桥接.md` |
 | `docs.modification` | [本机无工具链时用 GitHub Actions 云端编译](../问题记录/GitHubActions云端编译.md) | applies-to（反向：has-pitfall；来自 applies_to 字段） | `docs/问题记录/GitHubActions云端编译.md` |
+| `docs.modification` | [本机无工具链时用 GitHub Actions 云端编译](../问题记录/GitHubActions云端编译.md) | see-also | `docs/问题记录/GitHubActions云端编译.md` |

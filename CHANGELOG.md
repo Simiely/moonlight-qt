@@ -2,6 +2,25 @@
 
 本 fork 基于 `moonlight-stream/moonlight-qt`。上游变更见上游仓库；此处只记录本 fork 的改造。
 
+## v1.3.0 — 2026-11-27
+
+### 文档
+
+- 四件套补齐：新增 `DEVELOPMENT.md`（架构 + 关键问题），`README` 改为中文门面，`AGENTS` 校准基线、规模与命令
+- 新增 `docs/构建.md` 与 `docs/问题记录/` 两篇（跨线程 QML、Actions 云端编译），修复 3 处断链
+- 删除根目录过期的《连接质量悬浮窗-改造说明.md》，`docs/改造说明.md` 成为唯一真源
+- 走查报告补「v1.2 收口」，修正摘要与正文的 2/3 条不一致
+- 同步更新 `docs/改造说明.md` 的编译状态、使用说明与已知限制
+
+### 机器层
+
+- 接入 repo-kit 2.9.1（规范 2.1.5，`monorepo`）：`tools/repo-kit/`、`schema/taxonomy.json`、`schema/sources.json`、`schema/kit.lock.json`
+- 新增 `.github/workflows/repo-check.yml`：全量检查、PR 真源联动、生成物校验、版本锁校验
+
+### 说明
+
+- 本版本只改文档与维护层，不改功能；功能等同 v1.2.0
+
 ## v1.2.0 — 2026-11-27
 
 ### 变更

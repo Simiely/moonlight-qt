@@ -18,6 +18,12 @@ related: []
 
 ## 按 type
 
+### how-to
+
+| 页面 | kind | status | owner | tier | source |
+|---|---|---|---|---|---|
+| [构建与出包](../构建.md) | note | active | @simiely | normal | `README.md` |
+
 ### reference
 
 | 页面 | kind | status | owner | tier | source |
@@ -37,13 +43,14 @@ related: []
 
 | 坑 | severity | 症状 | applies_to | status |
 |---|---|---|---|---|
-| [解码线程数据无法刷新 QML 悬浮窗](../问题记录/跨线程QML数据桥接.md) | high | 连接质量悬浮窗显示初始值，数值永远不更新 | `docs.modification` | resolved |
-| [本机无工具链时用 GitHub Actions 云端编译](../问题记录/GitHubActions云端编译.md) | medium | 想要云端编译，但 git push 失败、工作流不触发 | `docs.modification` | resolved |
+| [解码线程数据无法刷新 QML 悬浮窗](../问题记录/跨线程QML数据桥接.md) | high | 串流中连接质量横条的延迟、码率、帧率一直是初始值；C++ 侧日志显示每秒都在推数据，QML 绑定却从不更新。 | `docs.modification` | resolved |
+| [本机无工具链时用 GitHub Actions 云端编译](../问题记录/GitHubActions云端编译.md) | medium | 本地没有 Qt / MSVC / 7-Zip，无法出包；git push 报 schannel 或 502，Actions 页面看不到成功的构建。 | `docs.modification` | resolved |
 
 ## 全部页面
 
 | id | 标题 | type | kind | status |
 |---|---|---|---|---|
+| `docs.build` | [构建与出包](../构建.md) | how-to | note | active |
 | `docs.index` | [文档索引](../index.md) | reference | index | active |
 | `docs.modification` | [Moonlight PC 改造说明](../改造说明.md) | how-to | report | active |
 | `pitfalls.cross-thread-qml` | [解码线程数据无法刷新 QML 悬浮窗](../问题记录/跨线程QML数据桥接.md) | explanation | pitfall | resolved |
